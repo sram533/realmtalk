@@ -4,6 +4,8 @@ import {Link} from 'react-router-dom';
 import Logo from "../assets/logo.svg";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { registerRoute } from '../utils/APIRoutes';
+import axios from "axios";
 
 const FormContainer = styled.div`
   height: 100vh;
@@ -90,35 +92,48 @@ export default function Register() {
       theme: "dark",
     };
 
-    const handleSubmit = (event) => {
-        handleValidation();
+    const handleSubmit = async (event) => {
         event.preventDefault();
-        alert("form");
+        if(handleValidation()){
+          console.log("In Validation: "+registerRoute);
+          const {password, confirmPassword, email, username} = values;
+          const {data} = await axios.post(registerRoute, {
+            username,
+            email,
+            password,
+          }) 
+        }
     };
     const handleChange = (event) => {
-        
         setValues({ ...values, [event.target.name]: event.target.value});
     }
     const handleValidation = () => {
       const {password, confirmPassword, email, username} = values;
-      console.log("Password: "+password);
-      console.log("Confirm Password: "+confirmPassword);
-      console.log(password !== confirmPassword);
       if(password !== confirmPassword){
         toast.error("Your password and confirmation password do not match.", toastOptions);
+        return false;
       }
-      if (!username) {
-        toast.error("Username is required", toastOptions);
-      } else if (username.length < 3 || username.length > 20) {
+      else if (username.length < 3 || username.length > 20) {
         toast.error("Username must be between 3 and 20 characters", toastOptions);
+        return false;
       }
-      if (!password) {
+      else if (password.length < 8) {
+        toast.error("Password should be equal or greater than 8 characters", toastOptions);
+        return false;
+      }
+      else if(email === ""){
+        toast.error("Email is required", toastOptions);
+        return false;
+      }
+      else if(password === ""){
         toast.error("Password is required", toastOptions);
-      } else if (password.length < 6) {
-        toast.error("Password must be at least 6 characters", toastOptions);
+        return false;
       }
-
-
+      else if(username === ""){
+        toast.error("Username is required", toastOptions);
+        return false;
+      }
+      return true;
     }
     
   return (
